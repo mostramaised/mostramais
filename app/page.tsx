@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Header from './components/header/Header';
 import Ticker from './components/Ticker';
 import Hero from './components/hero/Hero';
@@ -20,7 +21,20 @@ import MostraMais from './components/mostra-mais/MostraMais';
 import Footer from './components/footer/Footer';
 import type { Route } from './components/header/data';
 
+const VALID_ROUTES: Route[] = ['sobre', 'edicoes', 'cronograma', 'faq', 'contato', 'mais'];
+
+function routeFromPathname(pathname: string): { route: Route; project: string | null } {
+  const segments = pathname.split('/').filter(Boolean);
+  const seg = segments[0] as Route;
+  const route = VALID_ROUTES.includes(seg) ? seg : 'sobre';
+  const project = route === 'edicoes' && segments[1] ? segments[1] : null;
+  return { route, project };
+}
+
 export default function Home() {
+  const pathname = usePathname();
+  const { route, project: selectedProject } = routeFromPathname(pathname);
+
   const [projects, setProjects] = useState<EditionProject[] | null>(null);
   const effectiveProjects = projects ?? ALL_PROJECTS;
 
@@ -45,30 +59,20 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const [route, setRoute] = useState<Route>('sobre');
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedRoute = localStorage.getItem('mm-route') as Route;
-    const savedProject = localStorage.getItem('mm-project');
-    if (savedRoute) setRoute(savedRoute);
-    if (savedProject) setSelectedProject(savedProject);
-  }, []);
-
-  useEffect(() => { localStorage.setItem('mm-route', route); }, [route]);
-  useEffect(() => {
-    if (selectedProject) localStorage.setItem('mm-project', selectedProject);
-    else localStorage.removeItem('mm-project');
-  }, [selectedProject]);
-
   const onNav = (r: Route) => {
-    setRoute(r);
-    if (r !== 'edicoes') setSelectedProject(null);
+    window.history.pushState(null, '', r === 'sobre' ? '/' : `/${r}`);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  const openProject = (id: string) => { setSelectedProject(id); window.scrollTo({ top: 0, behavior: 'instant' }); };
-  const closeProject = () => { setSelectedProject(null); window.scrollTo({ top: 0, behavior: 'instant' }); };
+  const openProject = (id: string) => {
+    window.history.pushState(null, '', `/edicoes/${id}`);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const closeProject = () => {
+    window.history.pushState(null, '', '/edicoes');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
 
   return (
     <div className="mm-app">
