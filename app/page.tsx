@@ -23,6 +23,20 @@ import type { Route } from './components/header/data';
 
 const VALID_ROUTES: Route[] = ['sobre', 'edicoes', 'cronograma', 'faq', 'contato', 'mais'];
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-{2,}/g, '-');
+}
+
+function projectSlug(project: EditionProject): string {
+  return `${project.id}-${slugify(project.title)}`;
+}
+
 function routeFromPathname(pathname: string): { route: Route; project: string | null } {
   const segments = pathname.split('/').filter(Boolean);
   const seg = segments[0] as Route;
@@ -65,7 +79,9 @@ export default function Home() {
   };
 
   const openProject = (id: string) => {
-    window.history.pushState(null, '', `/edicoes/${id}`);
+    const project = effectiveProjects.find(p => p.id === id);
+    const slug = project ? projectSlug(project) : id;
+    window.history.pushState(null, '', `/edicoes/${slug}`);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
@@ -90,7 +106,12 @@ export default function Home() {
       {route === 'edicoes' && (
         <main className="mm-main">
           {selectedProject ? (
-            <EditionDetail id={selectedProject} projects={effectiveProjects} onBack={closeProject} onOpen={openProject} />
+            <EditionDetail
+              id={effectiveProjects.find(p => projectSlug(p) === selectedProject)?.id ?? selectedProject}
+              projects={effectiveProjects}
+              onBack={closeProject}
+              onOpen={openProject}
+            />
           ) : (
             <>
               <EditionsPage projects={effectiveProjects} onOpen={openProject} />
