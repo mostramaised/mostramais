@@ -58,12 +58,10 @@ function EditionListCard({ p, onOpen }: { p: EditionProject; onOpen: (id: string
             <img
               src={p.coverImg}
               alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'multiply', opacity: 0.7 }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover'}}
             />
           ) : null}
-          <span className="mm-past-cover-w" style={{ color: '#fff', mixBlendMode: 'multiply', position: 'relative' }}>{p.title.split(' ')[0].toUpperCase()}</span>
-          <span className="mm-past-cover-w b" style={{ color: p.accent, mixBlendMode: 'multiply', position: 'relative' }}>{p.title.split(' ')[0].toUpperCase()}</span>
-        </div>
+          </div>
         <div className="mm-past-info">
           <div className="mm-past-ed">Edição {p.edition} · {p.year}</div>
           <div className="mm-past-cat" style={{ color: p.accent }}>+ {p.area} · {p.tag}</div>

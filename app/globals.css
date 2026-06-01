@@ -611,20 +611,8 @@ body {
   gap: 18px;
   min-height: 200px;
   transition: background var(--dur-fast) var(--ease-out);
-  cursor: pointer;
 }
-.mm-partner:hover {
-  background: var(--bg-2);
-}
-.mm-partner:nth-child(4n + 1):hover {
-  background: color-mix(in srgb, var(--mm-pink) 12%, #fff);
-}
-.mm-partner:nth-child(4n + 2):hover {
-  background: color-mix(in srgb, var(--mm-blue) 12%, #fff);
-}
-.mm-partner:nth-child(4n + 3):hover {
-  background: color-mix(in srgb, var(--mm-orange) 20%, #fff);
-}
+
 .mm-partner-mark {
   width: 72px;
   height: 72px;
@@ -1887,10 +1875,6 @@ body {
 }
 .mm-pjcard:hover .mm-pjcard-cta .arr {
   transform: translateX(6px);
-}
-
-.mm-past-list--projetos {
-  border-top: 2px solid #000;
 }
 
 /* Projeto detail page */
