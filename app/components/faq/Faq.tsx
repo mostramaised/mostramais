@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import type { FaqItem } from './data';
 import { FAQS } from './data';
 
-export default function Faq() {
+interface FaqProps {
+  items?: FaqItem[];
+}
+
+export default function Faq({ items = FAQS }: FaqProps) {
   const [open, setOpen] = useState(0);
 
   return (
@@ -14,7 +19,7 @@ export default function Faq() {
         <p className="mm-section-lead">Dúvidas sobre inscrição, curadoria e exposição. Se a sua não estiver aqui, fale com a gente.</p>
       </header>
       <ul className="mm-faq-list">
-        {FAQS.map((f, i) => {
+        {items.map((f, i) => {
           const isOpen = open === i;
           return (
             <li key={i} className={`mm-faq-item ${isOpen ? 'open' : ''}`}>

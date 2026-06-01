@@ -1,4 +1,9 @@
-export const FAQS = [
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export const FAQS: FaqItem[] = [
   {
     q: 'Me formei na UEMG já tem um tempo. Ainda posso participar?',
     a: 'Sim! A MOSTRA+ aceita a inscrição de todos os projetos de conclusão de curso da Escola de Design, tanto de alunos como de egressos.',

@@ -1,6 +1,11 @@
+import type { SchedulePhase } from './data';
 import { SCHEDULE, SCHEDULE_META } from './data';
 
-export default function Schedule() {
+interface ScheduleProps {
+  phases?: SchedulePhase[];
+}
+
+export default function Schedule({ phases = SCHEDULE }: ScheduleProps) {
   return (
     <section className="mm-schedule" id="cronograma">
       <header className="mm-section-head">
@@ -9,7 +14,7 @@ export default function Schedule() {
         <p className="mm-section-lead">{SCHEDULE_META.lead}</p>
       </header>
       <ol className="mm-timeline">
-        {SCHEDULE.map((s, i) => (
+        {phases.map((s, i) => (
           <li key={i} className={`mm-tl-item mm-tl-item--${s.status}`} style={{ '--dot-color': s.color } as React.CSSProperties}>
             <div className="mm-tl-rail" aria-hidden>
               <div className="mm-tl-dot">

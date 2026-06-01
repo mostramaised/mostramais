@@ -9,6 +9,10 @@ import About from './components/about/About';
 import { EditionsPage, EditionDetail } from './components/editions';
 import { ALL_PROJECTS } from './components/editions/data';
 import type { EditionProject } from './components/editions/data';
+import { SCHEDULE } from './components/schedule/data';
+import type { SchedulePhase } from './components/schedule/data';
+import { FAQS } from './components/faq/data';
+import type { FaqItem } from './components/faq/data';
 import Faq from './components/faq/Faq';
 import Schedule from './components/schedule/Schedule';
 import Contact from './components/contact/Contact';
@@ -20,10 +24,24 @@ export default function Home() {
   const [projects, setProjects] = useState<EditionProject[] | null>(null);
   const effectiveProjects = projects ?? ALL_PROJECTS;
 
+  const [schedulePhases, setSchedulePhases] = useState<SchedulePhase[] | null>(null);
+  const effectiveSchedule = schedulePhases ?? SCHEDULE;
+
+  const [faqItems, setFaqItems] = useState<FaqItem[] | null>(null);
+  const effectiveFaqs = faqItems ?? FAQS;
+
   useEffect(() => {
     fetch('/api/projects')
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((d: { projects: EditionProject[] }) => setProjects(d.projects))
+      .catch(() => {});
+    fetch('/api/schedule')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then((d: { phases: SchedulePhase[] }) => setSchedulePhases(d.phases))
+      .catch(() => {});
+    fetch('/api/faq')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then((d: { faqs: FaqItem[] }) => setFaqItems(d.faqs))
       .catch(() => {});
   }, []);
 
@@ -80,14 +98,14 @@ export default function Home() {
 
       {route === 'cronograma' && (
         <main className="mm-main">
-          <Schedule />
+          <Schedule phases={effectiveSchedule} />
           <Ticker color="blue" items={['EDITAL 02', 'INSCRIÇÕES ATÉ 15/03', 'RESULTADO 30/03', 'ABERTURA 05/05']} />
         </main>
       )}
 
       {route === 'faq' && (
         <main className="mm-main">
-          <Faq />
+          <Faq items={effectiveFaqs} />
           <Ticker color="orange" items={['AINDA COM DÚVIDAS?', 'ESCREVE PARA MOSTRAMAIS.ED@GMAIL.COM', 'OU NOS CHAME NO INSTAGRAM', '@MOSTRAMAIS.ED']} />
         </main>
       )}
