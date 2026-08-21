@@ -1,27 +1,35 @@
 # MOSTRA+
 
-Site oficial da MOSTRA+, exposição de projetos de conclusão de curso da Escola de Design | UEMG. A 02ª edição acontece de 05 a 19 de maio de 2026 na ECED e no Auditório da ED, em Belo Horizonte.
+Site oficial da MOSTRA+, exposição de projetos de conclusão de curso da Escola de Design | UEMG. A 02ª edição acontece de 05 a 22 de maio de 2026 na ECED e no Auditório da ED, em Belo Horizonte.
 
 ## Stack
 
 - **Next.js 16** (App Router, React 19)
 - **TypeScript**
-- **Google Sheets API v4** — CMS para projetos e edições
-- **Google Drive** — hospedagem de imagens e PDFs dos projetos
+- **Google Sheets API v4** — CMS de praticamente todo o conteúdo do site
+- **Google Drive** — hospedagem de imagens, vídeos e PDFs
 
 ## Estrutura
 
 ```
 app/
 ├── page.tsx                  # SPA router principal
-├── api/projects/route.ts     # Endpoint que lê do Google Sheets
+├── [...slug]/page.tsx        # Rotas por seção (/edicoes, /cronograma, /faq…)
+├── api/
+│   ├── projects/route.ts     # Abas `projects` e `edicoes`
+│   ├── books/route.ts        # Aba `livros`
+│   ├── schedule/route.ts     # Aba `cronograma`
+│   ├── faq/route.ts          # Aba `faq`
+│   ├── contact/route.ts      # Aba `contato`
+│   ├── bastidores/route.ts   # Aba `bastidores`
+│   └── tickers/route.ts      # Abas `ticker-*`
 ├── components/
 │   ├── header/               # Navegação
 │   ├── hero/                 # Seção de abertura
 │   ├── about/                # Sobre a mostra e parceiros
 │   ├── manifesto/            # Manifesto
 │   ├── editions/             # Acervo de projetos (EditionsPage + EditionDetail)
-│   ├── schedule/             # Cronograma (9 fases)
+│   ├── schedule/             # Cronograma
 │   ├── faq/                  # Perguntas frequentes
 │   ├── contact/              # Contato, redes e links úteis
 │   ├── mostra-mais/          # Mostra+ um pouco (galeria + formulário)
@@ -52,9 +60,24 @@ GOOGLE_SHEETS_ID=<id-da-planilha>
 
 - A chave de API deve ter acesso apenas à **Google Sheets API**
 - A planilha precisa estar compartilhada como **Visualizador (Anyone with the link)**
-- Sem essas variáveis, o site usa os dados estáticos de `data.ts` como fallback
+- Sem essas variáveis, cada rota cai no seu fallback (veja a tabela abaixo)
 
 ## Preenchendo a planilha
+
+Cada aba é lida por uma rota, com cache de 5 minutos (`revalidate: 300`). Quando a aba está ausente, vazia ou a API falha, a rota devolve o fallback indicado e responde com `fallback: true` — o site nunca quebra por causa da planilha.
+
+| Aba                 | Rota               | Fallback                                    |
+| ------------------- | ------------------ | ------------------------------------------- |
+| `edicoes`           | `/api/projects`    | `EDITIONS` (`editions/data.ts`)             |
+| `projects`          | `/api/projects`    | `ALL_PROJECTS` (`editions/data.ts`)         |
+| `contato`           | `/api/contact`     | `CONTACT_DATA` (`contact/data.ts`)          |
+| `livros`            | `/api/books`       | lista vazia — a seção mostra “em breve”     |
+| `cronograma`        | `/api/schedule`    | `SCHEDULE` (`schedule/data.ts`)             |
+| `faq`               | `/api/faq`         | `FAQS` (`faq/data.ts`)                      |
+| `bastidores`        | `/api/bastidores`  | `GALLERY` (`mostra-mais/data.ts`)           |
+| `ticker-*`          | `/api/tickers`     | `TICKERS` (`ticker/data.ts`)                |
+
+`edicoes` e `projects` são lidas em paralelo pela mesma rota e falham de forma independente; o mesmo vale para cada aba `ticker-*` entre si.
 
 As seções abaixo descrevem a estrutura técnica de cada aba. Para o guia completo de preenchimento — voltado à equipe de conteúdo, com explicação campo a campo, exemplos e erros comuns — veja **[PLANILHA.md](PLANILHA.md)**.
 
@@ -86,9 +109,18 @@ O `id` precisa bater exatamente com a coluna `edition` das abas `projects` e `li
 | K      | `coverImg`  | URL de imagem no Drive (`/file/d/ID/view`)  |
 | L–AQ   | `media_N_*` | até 8 slots de mídia (4 colunas cada)       |
 
-**Tipos de mídia:** `image`, `video`, `block`, `pdf`
+Cada slot de mídia ocupa 4 colunas na ordem `tipo`, `link`, `extra`, `legenda` — a 1ª em L–O, a 2ª em P–S, e assim por diante até a 8ª em AN–AQ. O parser para no primeiro slot com `tipo` vazio, então os slots preenchidos precisam ser contíguos.
 
-URLs do Google Drive são normalizadas automaticamente para o formato de thumbnail.
+**Tipos de mídia** e o que cada coluna significa:
+
+| `tipo`  | `link`        | `extra`                | `legenda`                  |
+| ------- | ------------- | ---------------------- | -------------------------- |
+| `image` | URL da imagem | —                      | legenda                    |
+| `video` | URL do vídeo  | URL da imagem de capa  | legenda                    |
+| `block` | —             | cor de fundo (`#000`)  | texto exibido no bloco     |
+| `pdf`   | URL do PDF    | —                      | legenda                    |
+
+URLs do Google Drive são normalizadas automaticamente: imagens viram `thumbnail?id=…&sz=w1200` e vídeos viram `/preview`. Links de **pasta** do Drive são descartados (não servem como imagem), e o `src` de `pdf` é usado exatamente como informado, sem normalização.
 
 ## Google Sheets — estrutura da aba `contato`
 
@@ -124,6 +156,30 @@ Use uma linha de cabeçalho seguida por uma linha para cada edição. A coluna `
 | K      | `meta`          | ISBN, editora, local e outras informações|
 
 Os links são opcionais: o botão correspondente não aparece quando sua URL está vazia. Sem configuração ou em caso de erro, a seção exibe o estado “em breve” até que uma linha seja adicionada à planilha.
+
+## Google Sheets — estrutura da aba `cronograma`
+
+Uma linha por fase, exibidas na ordem das linhas. A aba é lida por `/api/schedule`. Linhas sem `phase` ou sem `title` são ignoradas.
+
+| Coluna | Campo    | Uso                                                      |
+| ------ | -------- | -------------------------------------------------------- |
+| A      | `phase`  | número da fase (`01`, `02`…) — obrigatório               |
+| B      | `date`   | data ou período, exibido como está (`02 FEV – 15 MAR 2026`) |
+| C      | `title`  | nome da fase — obrigatório                                |
+| D      | `body`   | descrição da fase                                         |
+| E      | `status` | `done`, `current` ou `next`                               |
+| F      | `color`  | cor do marcador (padrão `var(--mm-pink)`)                 |
+
+Qualquer valor não reconhecido em `status` — inclusive a célula vazia — é tratado como `next`. O campo não é calculado a partir da data atual: alguém precisa mover o `current` conforme o cronograma avança.
+
+## Google Sheets — estrutura da aba `faq`
+
+Uma linha por pergunta, exibidas na ordem das linhas. A aba é lida por `/api/faq`. As duas colunas são obrigatórias: uma pergunta sem resposta (ou o contrário) é ignorada.
+
+| Coluna | Campo | Uso        |
+| ------ | ----- | ---------- |
+| A      | `q`   | a pergunta |
+| B      | `a`   | a resposta |
 
 ## Google Sheets — estrutura da aba `bastidores`
 
