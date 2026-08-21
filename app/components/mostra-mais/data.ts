@@ -5,7 +5,19 @@ export const MOSTRA_MAIS_CONTENT = {
 
 export const INTEREST_FORM_HREF = 'https://forms.gle/9PyUCgG7QJYm1Brt8';
 
-export const GALLERY = [
+export type GalleryKind = 'image' | 'video' | 'gif';
+
+export interface GalleryItem {
+  kind: GalleryKind;
+  title: string;
+  sub: string;
+  color: string;
+  span?: 'big' | 'tall';
+  src?: string;
+  poster?: string;
+}
+
+export const GALLERY: GalleryItem[] = [
   { kind: 'image', title: 'Vernissage ed. 02',      sub: 'Galeria Principal · 2026', color: 'var(--mm-pink)',   span: 'big' },
   { kind: 'video', title: 'Making-of montagem',     sub: '4:12 · 2025',              color: '#111' },
   { kind: 'image', title: 'Portfolio Night',        sub: 'Foyer · 2025',             color: 'var(--mm-blue)' },

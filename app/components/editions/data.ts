@@ -21,12 +21,30 @@ export interface EditionProject {
   media: EditionMedia[];
 }
 
-export const EDITIONS = [
+export interface EditionBook {
+  edition: string;
+  coverEye: string;
+  coverTitle: string;
+  coverYear: string;
+  title: string;
+  lead: string;
+  downloadLabel: string;
+  downloadHref?: string;
+  onlineLabel: string;
+  onlineHref?: string;
+  meta: string;
+}
+
+export interface Edition {
+  id: string;
+  year: string;
+}
+
+/** Fallback usado quando a aba `edicoes` está vazia ou indisponível. */
+export const EDITIONS: Edition[] = [
   { id: '2', year: '2026' },
   { id: '1', year: '2025' },
 ];
-
-export const DEFAULT_EDITION = '2';
 
 export const ALL_PROJECTS: EditionProject[] = [
   // ── Edition 02 · 2026 ────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
-import { CHANNELS, SOCIAL, LINKS, ADDRESS } from './data';
+import { CONTACT_DATA } from './data';
+import type { ContactData } from './data';
 
-export default function Contact() {
+export default function Contact({ data = CONTACT_DATA }: { data?: ContactData }) {
   return (
     <section className="mm-contact" id="contato">
       <header className="mm-section-head">
@@ -13,7 +14,7 @@ export default function Contact() {
         <div className="mm-contact-col">
           <div className="mm-eyebrow mm-eyebrow--pink">+ E-mail</div>
           <ul className="mm-link-list">
-            {CHANNELS.map(c => (
+            {data.channels.map(c => (
               <li key={c.value}>
                 <a className="mm-link-row" href={c.href} target="_blank" rel="noopener noreferrer">
                   <span className="mm-link-lbl">{c.label}</span>
@@ -28,7 +29,7 @@ export default function Contact() {
         <div className="mm-contact-col">
           <div className="mm-eyebrow mm-eyebrow--pink">+ Redes sociais</div>
           <ul className="mm-social-grid">
-            {SOCIAL.map(s => (
+            {data.social.map(s => (
               <li key={s.name}>
                 <a className="mm-social-card" href={s.href} target="_blank" rel="noopener noreferrer" style={{ '--acc': s.color } as React.CSSProperties}>
                   <span className="mm-social-name">{s.name}</span>
@@ -43,7 +44,7 @@ export default function Contact() {
         <div className="mm-contact-col mm-contact-col--wide">
           <div className="mm-eyebrow mm-eyebrow--pink">+ Links úteis</div>
           <ul className="mm-link-list">
-            {LINKS.map(l => (
+            {data.links.map(l => (
               <li key={l.label}>
                 <a className="mm-link-row" href={l.href} target="_blank" rel="noopener noreferrer">
                   <span className="mm-link-val">{l.label}</span>
@@ -59,7 +60,7 @@ export default function Contact() {
       <div className="mm-contact-addr">
         <div>
           <div className="mm-eyebrow">+ Endereço</div>
-          <p>{ADDRESS.map((line, i) => <span key={i}>{line}{i < ADDRESS.length - 1 && <br />}</span>)}</p>
+          <p>{data.address.map((line, i) => <span key={i}>{line}{i < data.address.length - 1 && <br />}</span>)}</p>
         </div>
       </div>
     </section>

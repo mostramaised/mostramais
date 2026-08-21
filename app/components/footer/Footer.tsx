@@ -19,7 +19,12 @@ export default function Footer() {
           </div>
           <div>
             <div className="mm-eyebrow mm-eyebrow--white">+ Contato</div>
-            <p><Lines lines={FOOTER_CONTENT.contact} /></p>
+            <p>
+              <span>{FOOTER_CONTENT.contact[0]}<br /></span>
+              <a href={FOOTER_CONTENT.instagramHref} target="_blank" rel="noopener noreferrer">
+                {FOOTER_CONTENT.contact[1]}
+              </a>
+            </p>
           </div>
           <div>
             <div className="mm-eyebrow mm-eyebrow--white">+ Realização</div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { EDITIONS, DEFAULT_EDITION, type EditionProject } from './data';
+import { EDITIONS, type Edition, type EditionBook, type EditionProject } from './data';
 
 function ColorCover({ title, accent, bg, style }: { title: string; accent: string; bg: string; style?: React.CSSProperties }) {
   const word = title.split(' ')[0].toUpperCase();
@@ -74,12 +74,32 @@ function EditionListCard({ p, onOpen }: { p: EditionProject; onOpen: (id: string
   );
 }
 
-export default function EditionsPage({ onOpen, projects }: { onOpen: (id: string) => void; projects: EditionProject[] }) {
-  const [ed, setEd] = useState(DEFAULT_EDITION);
+export default function EditionsPage({ onOpen, projects, books = [], editions = EDITIONS }: { onOpen: (id: string) => void; projects: EditionProject[]; books?: EditionBook[]; editions?: Edition[] }) {
+  const [picked, setPicked] = useState<string | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
 
+  // A edição escolhida só vale enquanto existir na lista: quando os dados da
+  // planilha chegam, uma seleção órfã volta sozinha para a primeira edição.
+  const ed = picked && editions.some(e => e.id === picked)
+    ? picked
+    : editions[0]?.id ?? '';
+
   const filtered = projects.filter(p => p.edition === ed);
-  const edMeta = EDITIONS.find(e => e.id === ed);
+  const edMeta = editions.find(e => e.id === ed);
+  const fetchedBook = books.find(b => b.edition === ed);
+  const book = fetchedBook ?? {
+    edition: ed,
+    coverEye: `+ EDIÇÃO ${ed.padStart(2, '0')}`,
+    coverTitle: 'MOSTRA+',
+    coverYear: edMeta?.year ?? '',
+    title: `O livro da ${ed.padStart(2, '0')}ª edição em breve.`,
+    lead: '',
+    downloadLabel: '',
+    onlineLabel: '',
+    meta: '',
+    downloadHref: undefined,
+    onlineHref: undefined,
+  };
 
   return (
     <>
@@ -92,11 +112,11 @@ export default function EditionsPage({ onOpen, projects }: { onOpen: (id: string
 
         <div className="mm-projetos-toolbar">
           <div className="mm-pgrid-filters">
-            {EDITIONS.map(e => (
+            {editions.map(e => (
               <button
                 key={e.id}
                 className={`mm-filter ${ed === e.id ? 'on' : ''}`}
-                onClick={() => { setEd(e.id); setView('grid'); }}
+                onClick={() => { setPicked(e.id); setView('grid'); }}
               >
                 Ed. {e.id}
               </button>
@@ -125,28 +145,28 @@ export default function EditionsPage({ onOpen, projects }: { onOpen: (id: string
         )}
       </section>
 
-      {/* <section className="mm-livro" id="book">
+      <section className="mm-livro" id="book">
         <div className="mm-livro-inner">
           <div className="mm-livro-book" aria-hidden>
             <div className="mm-livro-spine"></div>
             <div className="mm-livro-cover">
-              <div className="mm-livro-cover-eye">+ EDIÇÃO 01</div>
-              <div className="mm-livro-cover-title">MOSTRA<span>+</span></div>
-              <div className="mm-livro-cover-year">2025</div>
+              <div className="mm-livro-cover-eye">{book.coverEye}</div>
+              <div className="mm-livro-cover-title">{book.coverTitle}</div>
+              <div className="mm-livro-cover-year">{book.coverYear}</div>
             </div>
           </div>
           <div className="mm-livro-copy">
             <div className="mm-eyebrow mm-eyebrow--white">+ Livro da edição</div>
-            <h3 className="mm-livro-title">O livro da 01ª edição já está disponível.</h3>
-            <p className="mm-livro-lead">192 páginas, 42 projetos, 4 áreas. Impresso em papel pólen e offset 2 cores, com ensaios curatoriais e registros fotográficos da montagem.</p>
+            <h3 className="mm-livro-title">{book.title}</h3>
+            <p className="mm-livro-lead">{book.lead}</p>
             <div className="mm-livro-cta">
-              <button className="mm-btn mm-btn--pink">Baixar PDF (22 MB)</button>
-              <button className="mm-btn mm-btn--ghost mm-btn--on-dark">Ver online →</button>
+              {book.downloadHref && <a className="mm-btn mm-btn--pink" href={book.downloadHref} target="_blank" rel="noopener noreferrer">{book.downloadLabel}</a>}
+              {book.onlineHref && <a className="mm-btn mm-btn--ghost mm-btn--on-dark" href={book.onlineHref} target="_blank" rel="noopener noreferrer">{book.onlineLabel}</a>}
             </div>
-            <div className="mm-livro-meta">ISBN 978-65-00-00000-0 · Editora Par(ent)êntese · BH, 2025</div>
+            <div className="mm-livro-meta">{book.meta}</div>
           </div>
         </div>
-      </section> */}
+      </section>
     </>
   );
 }

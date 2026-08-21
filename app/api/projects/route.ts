@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ALL_PROJECTS, EDITIONS } from '@/app/components/editions/data';
-import type { EditionProject, EditionMedia } from '@/app/components/editions/data';
+import type { Edition, EditionProject, EditionMedia } from '@/app/components/editions/data';
 
 const AREA_COLORS: Record<string, { accent: string; bg: string }> = {
   'gráfico':   { accent: '#ed3e8c', bg: '#f9a52b' },
@@ -114,6 +114,40 @@ function rowToProject(row: string[]): EditionProject | null {
   };
 }
 
+function rowToEdition(row: string[]): Edition | null {
+  const id = (row[0] ?? '').trim();
+  if (!id) return null;
+  return { id, year: (row[1] ?? '').trim() };
+}
+
+/**
+ * Lê a aba `edicoes`. A ordem das linhas é a ordem dos filtros na página,
+ * e a primeira linha é a edição aberta por padrão.
+ */
+async function fetchEditions(sheetId: string, apiKey: string): Promise<Edition[]> {
+  try {
+    const range = encodeURIComponent('edicoes!A1:B');
+    const url   = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+
+    const res = await fetch(url, { next: { revalidate: 300 } });
+
+    if (!res.ok) {
+      throw new Error(`Sheets API ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json() as { values?: string[][] };
+    const editions = (data.values ?? [])
+      .slice(1)
+      .map(rowToEdition)
+      .filter((e): e is Edition => e !== null);
+
+    return editions.length > 0 ? editions : EDITIONS;
+  } catch (err) {
+    console.error('[/api/projects] tab "edicoes" failed, using static fallback:', err);
+    return EDITIONS;
+  }
+}
+
 export async function GET() {
   const sheetId = process.env.GOOGLE_SHEETS_ID;
   const apiKey  = process.env.GOOGLE_API_KEY;
@@ -126,8 +160,12 @@ export async function GET() {
     );
   }
 
+  // As duas abas são lidas em paralelo e falham de forma independente:
+  // um problema em `edicoes` não derruba os projetos, e vice-versa.
+  const editionsPromise = fetchEditions(sheetId, apiKey);
+
   try {
-    const range = encodeURIComponent('projects!A1:AN');
+    const range = encodeURIComponent('projects!A1:AQ');
     const url   = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
     const res = await fetch(url, { next: { revalidate: 300 } });
@@ -146,13 +184,13 @@ export async function GET() {
       .filter((p): p is EditionProject => p !== null);
 
     return NextResponse.json(
-      { projects, editions: EDITIONS },
+      { projects, editions: await editionsPromise },
       { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
     );
   } catch (err) {
     console.error('[/api/projects] fetch failed, falling back to static data:', err);
     return NextResponse.json(
-      { projects: ALL_PROJECTS, editions: EDITIONS, fallback: true },
+      { projects: ALL_PROJECTS, editions: await editionsPromise, fallback: true },
       { headers: { 'Cache-Control': 'no-store', 'X-Data-Source': 'static-fallback' } }
     );
   }

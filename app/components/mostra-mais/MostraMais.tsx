@@ -1,8 +1,23 @@
 import { GALLERY, INTEREST_FORM_HREF, MOSTRA_MAIS_CONTENT } from './data';
+import type { GalleryItem } from './data';
 
 const MEDIA_LABELS: Record<string, string> = { image: '⌂ Foto', video: '▶ Vídeo', gif: '∞ GIF' };
 
-export default function MostraMais() {
+function GalleryMedia({ item }: { item: GalleryItem }) {
+  if (!item.src) return null;
+
+  if (item.kind === 'video') {
+    if (item.src.includes('drive.google.com/file/')) {
+      return <iframe className="mm-gal-media" src={item.src} title={item.title} allow="autoplay; fullscreen" />;
+    }
+    return <video className="mm-gal-media" src={item.src} poster={item.poster} controls preload="metadata" />;
+  }
+
+  {/* eslint-disable-next-line @next/next/no-img-element */}
+  return <img className="mm-gal-media" src={item.src} alt={item.title} />;
+}
+
+export default function MostraMais({ gallery = GALLERY }: { gallery?: GalleryItem[] }) {
   return (
     <>
       <section className="mm-more" id="mostra-mais">
@@ -37,8 +52,9 @@ export default function MostraMais() {
           <p className="mm-section-lead">{MOSTRA_MAIS_CONTENT.galleryLead}</p>
         </header>
         <div className="mm-gal-grid">
-          {GALLERY.map((g, i) => (
+          {gallery.map((g, i) => (
             <figure key={i} className={`mm-gal-tile mm-gal-tile--${g.span || 'std'}`} style={{ background: g.color }}>
+              <GalleryMedia item={g} />
               <span className="mm-gal-badge">{MEDIA_LABELS[g.kind]}</span>
               <figcaption>
                 <div className="mm-gal-title">{g.title}</div>

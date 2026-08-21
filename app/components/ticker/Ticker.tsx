@@ -1,9 +1,13 @@
+import type { TickerColor } from './data';
+
 interface TickerProps {
   items: string[];
-  color?: 'orange' | 'pink' | 'blue';
+  color?: TickerColor;
 }
 
 export default function Ticker({ items, color = 'orange' }: TickerProps) {
+  if (items.length === 0) return null;
+
   const all = [...items, ...items, ...items];
   return (
     <div className={`mm-ticker mm-ticker--${color}`}>
